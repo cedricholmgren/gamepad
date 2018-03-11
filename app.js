@@ -7,19 +7,26 @@ setTimeout((function () {
 
   let state = {
     spaceships: [{
-      id: 'ship-1',
-      x: midX - 30,
+      id: 'player-1',
+      x: midX - 90,
       y: midY,
-      width: 172 / 4,
-      height: 302 / 4,
-      sprite: 'ship-orange-1.png'
+      width: 172 / 5,
+      height: 302 / 5,
+      sprite: 'ship-orange-main.png'
     }, {
-      id: 'ship-2',
-      x: midX + 30,
+      id: 'player-2',
+      x: midX + 90,
       y: midY,
-      width: 172 / 4,
-      height: 302 / 4,
-      sprite: 'ship-orange-2.png'
+      width: 172 / 5,
+      height: 302 / 5,
+      sprite: 'ship-blue-main.png'
+    }, {
+      id: 'mother-ship',
+      x: midX,
+      y: midY,
+      width: 450 / 5,
+      height: 750 / 5,
+      sprite: 'mother-ship.png'
     }]
   }
 
