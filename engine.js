@@ -4,13 +4,8 @@ window.engine = (function () {
   // What node will we be drawing on? Defaults to body
   let rootNode = document.getElementById('body')
 
-  return {
+  const engine = {
     setRootNode: (nodeName) => (rootNode = document.getElementById(nodeName)),
-
-    run: (gameloop) => window.requestAnimationFrame(() => {
-      gameloop()
-      window.requestAnimationFrame(gameloop)
-    }),
 
     /**
      * Draws a sprite on the screen. Props should have an
@@ -19,22 +14,48 @@ window.engine = (function () {
      * The origin will be set to the middle unless otherwise specified.
      */
     draw: (props) => {
-      const { x, y, width, height, sprite } = props
+      const obj = document.createElement('img')
+      obj.id = props.id
+      rootNode.appendChild(obj)
+      return props
+    },
+
+    /**
+     * Updates a given object with the new properties.
+     */
+    update: (props) => {
+      const obj = document.getElementById(props.id)
+      // if (!obj) { alert(`Element ${props.id} doesn't exist.`); return }
+
+      const { x, y, width, height, direction, sprite } = props
 
       // TODO: allow setting origin
       const tx = x - (width / 2)
       const ty = y - (height / 2)
 
-      const obj = document.createElement('img')
       obj.src = `./assets/${sprite}`
       obj.style.display = 'block'
       obj.style.position = 'absolute'
       obj.style.width = `${width}px`
       obj.style.height = `${height}px`
-      obj.style.transform = `translate(${tx}px,${ty}px)`
-      obj.id = props.id
+      obj.style.transform = `translate(${tx}px,${ty}px) rotate(${direction}deg)`
 
-      rootNode.appendChild(obj)
+      // return for chaining
+      return props
+    },
+
+    advance: (props) => {
+      // normalize within 0-359
+      props.direction = (props.direction + 3600) % 360
+
+      // now advance by speed in the direction pointed
+      props.x += props.speed * Math.cos((props.direction - 90) * Math.PI / 180);
+      props.y += props.speed * Math.sin((props.direction - 90) * Math.PI / 180);
+
+      console.log(props)
+
+      // return for chaining
+      return props
     },
 
     gamepad: {
@@ -73,4 +94,5 @@ window.engine = (function () {
       }
     }
   }
+  return engine
 })()
