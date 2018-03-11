@@ -54,9 +54,12 @@ setTimeout((function () {
     }]
   }
 
+  
+
+
   function setup() {
     engine.setRootNode('gameCanvas')
-
+    
     state.spaceships.map(draw)
   }
 
