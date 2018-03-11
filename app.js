@@ -1,6 +1,6 @@
 setTimeout((function () {
   const engine = window.engine
-  const { gamepad, draw } = engine
+  const { gamepad, draw, advance, update } = engine
 
   const midX = window.innerWidth / 2
   const midY = window.innerHeight / 2
@@ -12,6 +12,8 @@ setTimeout((function () {
       y: midY,
       width: 172 / 5,
       height: 302 / 5,
+      direction: 0,
+      speed: 2,
       sprite: 'ship-orange-main.png'
     }, {
       id: 'player-2',
@@ -19,6 +21,8 @@ setTimeout((function () {
       y: midY,
       width: 172 / 5,
       height: 302 / 5,
+      direction: 0,
+      speed: 1,
       sprite: 'ship-blue-main.png'
     }, {
       id: 'mother-ship',
@@ -26,6 +30,8 @@ setTimeout((function () {
       y: midY,
       width: 450 / 5,
       height: 750 / 5,
+      direction: 0,
+      speed: 1,
       sprite: 'mother-ship.png'
     }]
   }
@@ -33,7 +39,13 @@ setTimeout((function () {
   function setup() {
     engine.setRootNode('gameCanvas')
 
-    state.spaceships.forEach(draw)
+    state.spaceships.map(draw)
+  }
+
+  function updateAll() {
+    state.spaceships[0].direction -= 1
+    state.spaceships[1].direction += 1
+    state.spaceships.map(advance).map(update)
   }
 
   // --------------------------------------
@@ -48,9 +60,12 @@ setTimeout((function () {
     if (gamepads[1]) {
       // ready player two
     }
+
+    updateAll()
+    window.requestAnimationFrame(gameloop)
   }
 
   setup()
-  engine.run(gameloop)
+  window.requestAnimationFrame(gameloop)
 
 }), 100)
