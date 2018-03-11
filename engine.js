@@ -1,8 +1,13 @@
 window.engine = (function () {
   const id = g => g
 
-  // What node will we be drawing on? Defaults to body
+  // what node will we be drawing on? defaults to body
   let rootNode = document.getElementById('body')
+
+  // tracks all keyboard events
+  let onKeyDownCallbacks = {}
+  let onKeyUpCallbacks = {}
+  let onKeyPressCallbacks = {}
 
   // throttle console logs, to keep from blowing up the compy
   let throttle = window.performance.now()
@@ -17,9 +22,11 @@ window.engine = (function () {
   const normalize = (num, range) => (num + (range * 10)) % range
   const bound = (num, min, max) => Math.min(Math.max(min, num), max)
   const round = (num, places) => Math.round(num / places) * places
+  const keyCodes = { 8: "backspace", 9: "tab", 13: "enter", 16: "shift", 17: "ctrl", 18: "alt", 20: "capslock", 27: "escape", 32: "spacebar", 33: "pgup", 34: "pgdn", 35: "end", 36: "home", 37: "left", 38: "up", 39: "right", 40: "down", 48: "0", 49: "1", 50: "2", 51: "3", 52: "4", 53: "5", 54: "6", 55: "7", 56: "8", 57: "9", 58: ":", 60: "<", 65: "a", 66: "b", 67: "c", 68: "d", 69: "e", 70: "f", 71: "g", 72: "h", 73: "i", 74: "j", 75: "k", 76: "l", 77: "m", 78: "n", 79: "o", 80: "p", 81: "q", 82: "r", 83: "s", 84: "t", 85: "u", 86: "v", 87: "w", 88: "x", 89: "y", 90: "z", 96: "num0", 97: "num1", 98: "num2", 99: "num3", 100: "num4", 101: "num5", 102: "num6", 103: "num7", 104: "num8", 105: "num9", 107: "num+", 109: "num-", 110: "num.", 111: "num/", 160: "^", 161: '!', 163: "#", 164: '$', 170: '*', 188: ",", 190: ".", 191: "/", 219: "[", 220: "\\", 221: "]", 222: "'", 223: "`" }
 
   const engine = {
     tlog: tlog,
+    keyCodes: keyCodes,
     setRootNode: (nodeName) => (rootNode = document.getElementById(nodeName)),
 
     /**
@@ -54,6 +61,7 @@ window.engine = (function () {
       obj.style.width = `${width}px`
       obj.style.height = `${height}px`
       obj.style.opacity = alpha
+      obj.style.filter = `blur(${props.blur || 0}px)`
       obj.style.transform = `translate(${tx}px,${ty}px) rotate(${direction}deg)`
 
       // return for chaining
@@ -67,19 +75,50 @@ window.engine = (function () {
       props.speed *= 0.99
       if (props.speed < 0.05 && props.speed > -0.05) props.speed = 0
 
-      // normalize within 0-359
+      // turn, and then normalize within 0-359
+      props.direction += props.turn
       props.direction = normalize(props.direction, 360)
 
       // now advance by speed in the direction pointed
       props.x += props.speed * Math.cos((props.direction - 90) * Math.PI / 180);
       props.y += props.speed * Math.sin((props.direction - 90) * Math.PI / 180);
-      
+
       // strafe sideways
       props.x += props.strafe * Math.cos((props.direction) * Math.PI / 180);
       props.y += props.strafe * Math.sin((props.direction) * Math.PI / 180);
 
       // return for chaining
       return props
+    },
+
+    keyboard: {
+      clearKeyDown: (key) => { onKeyDownCallbacks[key] = undefined },
+      clearAllKeyDown: () => { onKeyDownCallbacks = {} },
+      onKeyDown: (key, callback) => {
+        onKeyDownCallbacks[key] = callback // only one event per keyEvent
+        document.onkeydown = (e) => {
+          const pressedKey = keyCodes[e.keyCode]
+          if (onKeyDownCallbacks[pressedKey]) onKeyDownCallbacks[pressedKey]()
+        }
+      },
+      clearKeyUp: (key) => { onKeyUpCallbacks[key] = undefined },
+      clearAllKeyUp: () => { onKeyUpCallbacks = {} },
+      onKeyUp: (key, callback) => {
+        onKeyUpCallbacks[key] = callback // only one event per keyEvent
+        document.onkeyup = (e) => {
+          const pressedKey = keyCodes[e.keyCode]
+          if (onKeyUpCallbacks[pressedKey]) onKeyUpCallbacks[pressedKey]()
+        }
+      },
+      clearKeyPress: (key) => { onKeyPressCallbacks[key] = undefined },
+      clearAllKeyPress: () => { onKeyPressCallbacks = {} },
+      onKeyPress: (key, callback) => {
+        onKeyPressCallbacks[key] = callback // only one event per keyEvent
+        document.onkeypress = (e) => {
+          const pressedKey = keyCodes[e.keyCode]
+          if (onKeyPressCallbacks[pressedKey]) onKeyPressCallbacks[pressedKey]()
+        }
+      },
     },
 
     gamepad: {
