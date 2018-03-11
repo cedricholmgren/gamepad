@@ -13,7 +13,7 @@ setTimeout((function () {
       width: 172 / 5,
       height: 302 / 5,
       direction: 0,
-      speed: 2,
+      speed: 0,
       sprite: 'ship-orange-main.png'
     }, {
       id: 'player-2',
@@ -22,7 +22,7 @@ setTimeout((function () {
       width: 172 / 5,
       height: 302 / 5,
       direction: 0,
-      speed: 1,
+      speed: 0,
       sprite: 'ship-blue-main.png'
     }, {
       id: 'mother-ship',
@@ -31,7 +31,7 @@ setTimeout((function () {
       width: 450 / 5,
       height: 750 / 5,
       direction: 0,
-      speed: 1,
+      speed: 0,
       sprite: 'mother-ship.png'
     }]
   }
@@ -43,8 +43,22 @@ setTimeout((function () {
   }
 
   function updateAll() {
-    state.spaceships[0].direction -= 1
-    state.spaceships[1].direction += 1
+    // Get the latest gamepad state.
+    const gamepads = gamepad.all()
+    let p1 = gamepads[0]
+    let p2 = gamepads[1]
+    if (p1) {
+      // ready player one
+      state.spaceships[0].speed = p1['RT']
+    }
+    if (p2) {
+      // ready player two
+      state.spaceships[1].speed = p2['RT']
+    }
+
+    // state.spaceships[0].direction -= 1
+    // state.spaceships[1].direction += 1
+
     state.spaceships.map(advance).map(update)
   }
 
@@ -52,14 +66,7 @@ setTimeout((function () {
   // Animation loop
   // --------------------------------------
   function gameloop() {
-    // Get the latest gamepad state.
-    const gamepads = gamepad.all()
-    if (gamepads[0]) {
-      // ready player one
-    }
-    if (gamepads[1]) {
-      // ready player two
-    }
+
 
     updateAll()
     window.requestAnimationFrame(gameloop)
