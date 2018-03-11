@@ -100,12 +100,34 @@ setTimeout((function () {
     manageKeyboards()
   }
 
+  function checkVisibility(spaceship) {
+    const mothership = state.spaceships[0]
+    if (mothership === spaceship) return spaceship
+
+    // can see further if pointing at it
+    const farVisibility = engine.isInView(mothership, spaceship, {
+      distance: 500,
+      angleDelta: 70
+    })
+
+    // anything within 200 is visible
+    const nearVisibility = engine.isInView(mothership, spaceship, {
+      distance: 200
+    })
+
+    const visibility = Math.max(farVisibility, nearVisibility)
+
+    spaceship.alpha = visibility
+    spaceship.blur = 3 - (visibility * 3)
+    return spaceship
+  }
+
   // --------------------------------------
   // Animation loop
   // --------------------------------------
   function gameloop() {
     gamepad.all().map(manageGamepad)
-    state.spaceships.map(advance).map(update)
+    state.spaceships.map(checkVisibility).map(advance).map(update)
 
     window.requestAnimationFrame(gameloop)
   }

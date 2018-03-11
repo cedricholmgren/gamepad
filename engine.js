@@ -91,6 +91,56 @@ window.engine = (function () {
       return props
     },
 
+    /**
+     * Distance between two objects. Pythagorean theorem.
+     */
+    distanceToObj: (a, b) => {
+      const x = Math.abs(a.x - b.x)
+      const y = Math.abs(a.y - b.y)
+      return Math.sqrt(x * x + y * y)
+    },
+
+    /**
+     * Angle from one obj to another. Trig.
+     */
+    directionToObj: (a, b) => (Math.atan2(a.y - b.y, a.x - b.x) / Math.PI * 180) + 270,
+
+    /** 
+     * Delta between two angles.
+     */
+    deltaBetween: (a, b) => {
+      let d = b - a
+      d = d >= 180 ? d - 360 : d
+      d = d <= -180 ? d + 360 : d
+      return d
+    },
+
+    /**
+     * Tells you if one object is in view of the other object based on
+     * distance and angle delta. Will also tell you _how_ in view it is,
+     * 0-1.0, with 1 being fully in view, 0 not in view, 0.5 halfway in view.
+     * We use the last 25% of the distance and last 25% of the angle delta to
+     * determine how in view it is.
+     * 
+     * e.g. isInView(myObj, otherObj, { distance: 100, angleDelta: 90 })
+     */
+    isInView: (myObj, otherObj, props) => {
+      let result = 1
+
+      if (props.distance) {
+        let distance = engine.distanceToObj(myObj, otherObj)
+        result = bound((props.distance - distance) / (props.distance * 0.25), 0, 1)
+      }
+
+      if (props.angleDelta) {
+        let dir = engine.directionToObj(myObj, otherObj)
+        let angleDelta = Math.abs(engine.deltaBetween(myObj.direction, dir))
+        result = result * bound((props.angleDelta - angleDelta) / (props.angleDelta * 0.25), 0, 1)
+      }
+
+      return result
+    },
+
     keyboard: {
       clearKeyDown: (key) => { onKeyDownCallbacks[key] = undefined },
       clearAllKeyDown: () => { onKeyDownCallbacks = {} },
