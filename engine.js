@@ -14,7 +14,12 @@ window.engine = (function () {
     }
   }
 
+  const normalize = (num, range) => (num + (range * 10)) % range
+  const bound = (num, min, max) => Math.min(Math.max(min, num), max)
+  const round = (num, places) => Math.round(num / places) * places
+
   const engine = {
+    tlog: tlog,
     setRootNode: (nodeName) => (rootNode = document.getElementById(nodeName)),
 
     /**
@@ -37,17 +42,18 @@ window.engine = (function () {
       const obj = document.getElementById(props.id)
       // if (!obj) { alert(`Element ${props.id} doesn't exist.`); return }
 
-      const { x, y, width, height, direction, sprite } = props
+      const { x, y, width, height, direction, sprite, alpha } = props
 
       // TODO: allow setting origin
-      const tx = x - (width / 2)
-      const ty = y - (height / 2)
+      const tx = round(x - (width / 2), 0.1)
+      const ty = round(y - (height / 2), 0.1)
 
       obj.src = `./assets/${sprite}`
       obj.style.display = 'block'
       obj.style.position = 'absolute'
       obj.style.width = `${width}px`
       obj.style.height = `${height}px`
+      obj.style.opacity = alpha
       obj.style.transform = `translate(${tx}px,${ty}px) rotate(${direction}deg)`
 
       // return for chaining
@@ -55,14 +61,22 @@ window.engine = (function () {
     },
 
     advance: (props) => {
+      // update speed based on thrust and maxspeed
+      props.speed += (props.thrust * props.acceleration)
+      props.speed = bound(props.speed, props.maxReverse, props.maxSpeed)
+      props.speed *= 0.99
+      if (props.speed < 0.05 && props.speed > -0.05) props.speed = 0
+
       // normalize within 0-359
-      props.direction = (props.direction + 3600) % 360
+      props.direction = normalize(props.direction, 360)
 
       // now advance by speed in the direction pointed
       props.x += props.speed * Math.cos((props.direction - 90) * Math.PI / 180);
       props.y += props.speed * Math.sin((props.direction - 90) * Math.PI / 180);
-
-      tlog(props)
+      
+      // strafe sideways
+      props.x += props.strafe * Math.cos((props.direction) * Math.PI / 180);
+      props.y += props.strafe * Math.sin((props.direction) * Math.PI / 180);
 
       // return for chaining
       return props
