@@ -5,6 +5,9 @@ setTimeout((function () {
   const midX = window.innerWidth / 2
   const midY = window.innerHeight / 2
 
+  const rand = (max) => Math.random() * max
+  const randInt = (max) => Math.floor(rand(max))
+
   let state = {
     spaceships: [{
       id: 'mother-ship',
@@ -13,6 +16,7 @@ setTimeout((function () {
       width: 450 / 5,
       height: 750 / 5,
       direction: 0,
+      radarDirection: 0,
       turn: 0,
       speed: 0,
       strafe: 0,
@@ -57,18 +61,19 @@ setTimeout((function () {
       blur: 2,
       sprite: 'ship-blue-main.png'
     }],
-    astroids: [{
-      id: 'astroid-1',
-      x: 50,
-      y: 50,
-      width: 256 / 4,
-      height: 256 / 4,
+    astroids: ([...new Array(80)]).map((_, i) => ({
+      id: `astroid-${i}`,
+      x: randInt(window.innerWidth),
+      y: randInt(window.innerHeight),
+      width: 256 / 8,
+      height: 256 / 8,
       direction: 0,
+      spin: rand(1) - 0.5,
       speed: 0,
-      alpha: 0.5,
+      alpha: 1,
       blur: 0,
-      sprite: 'ship-blue-main.png'
-    }]
+      sprite: 'astroid-icon.png'
+    }))
   }
 
   function manageGamepad(gamepad, i) {
@@ -100,34 +105,48 @@ setTimeout((function () {
     manageKeyboards()
   }
 
-  function checkVisibility(spaceship) {
+  function checkVisibility(obj) {
     const mothership = state.spaceships[0]
-    if (mothership === spaceship) return spaceship
+    if (mothership === obj) {
+      mothership.radarDirection += 2
+      if (mothership.radarDirection > 360) mothership.radarDirection -= 360
+      return obj
+    }
 
     // can see further if pointing at it
-    const farVisibility = engine.isInView(mothership, spaceship, {
+    const farVisibility = engine.isInView(mothership, obj, {
       distance: 500,
       angleDelta: 70
     })
 
     // anything within 200 is visible
-    const nearVisibility = engine.isInView(mothership, spaceship, {
+    const nearVisibility = engine.isInView(mothership, obj, {
       distance: 200
     })
 
     const visibility = Math.max(farVisibility, nearVisibility)
 
-    spaceship.alpha = visibility
-    spaceship.blur = 3 - (visibility * 3)
-    return spaceship
+    obj.alpha = visibility
+    obj.blur = 3 - (visibility * 3)
+    return obj
+  }
+
+  function updateAstroid(astroid) {
+    astroid.direction += astroid.spin
+    if (astroid.direction < 0) astroid.direction += 360
+    if (astroid.direction >= 360) astroid.direction -= 360
+    return astroid
   }
 
   // --------------------------------------
   // Animation loop
   // --------------------------------------
   function gameloop() {
+    // tlog(state)
+
     gamepad.all().map(manageGamepad)
     state.spaceships.map(checkVisibility).map(advance).map(update)
+    state.astroids.map(checkVisibility).map(updateAstroid).map(update)
 
     window.requestAnimationFrame(gameloop)
   }

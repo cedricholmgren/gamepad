@@ -123,6 +123,8 @@ window.engine = (function () {
      * determine how in view it is.
      * 
      * e.g. isInView(myObj, otherObj, { distance: 100, angleDelta: 90 })
+     * 
+     * It'll use a radarDirection if available, otherwise nose direction.
      */
     isInView: (myObj, otherObj, props) => {
       let result = 1
@@ -134,7 +136,7 @@ window.engine = (function () {
 
       if (props.angleDelta) {
         let dir = engine.directionToObj(myObj, otherObj)
-        let angleDelta = Math.abs(engine.deltaBetween(myObj.direction, dir))
+        let angleDelta = Math.abs(engine.deltaBetween(myObj.radarDirection || myObj.direction, dir))
         result = result * bound((props.angleDelta - angleDelta) / (props.angleDelta * 0.25), 0, 1)
       }
 
